@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "Trust Agent",
+    "slug": "trust-agent-mobile",
+    "scheme": "trustagent",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0A1628",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "backgroundColor": "#0A1628"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "ai.trust-agent.mobile",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Trust Agent needs your microphone to communicate with your hired AI roles via voice.",
+        "NSSpeechRecognitionUsageDescription": "Trust Agent uses speech recognition for voice commands."
+      }
+    },
+    "android": {
+      "package": "ai.trust_agent.mobile",
+      "permissions": ["RECORD_AUDIO", "INTERNET", "VIBRATE"]
+    },
+    "plugins": [
+      "expo-router",
+      "@livekit/react-native-expo-plugin",
+      "@config-plugins/react-native-webrtc",
+      "expo-font",
+      [
+        "expo-notifications",
+        { "sounds": [] }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
