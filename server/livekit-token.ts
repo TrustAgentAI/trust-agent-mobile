@@ -46,7 +46,7 @@ export function validateTokenRequest(body: unknown): {
   };
 }
 
-export function generateToken(roomName: string, participantName: string): string {
+export async function generateToken(roomName: string, participantName: string): Promise<string> {
   if (!LIVEKIT_API_KEY || !LIVEKIT_API_SECRET) {
     throw new Error('LIVEKIT_API_KEY and LIVEKIT_API_SECRET must be set in environment');
   }
@@ -68,7 +68,7 @@ export function generateToken(roomName: string, participantName: string): string
 }
 
 // Legacy function used by /livekit/token endpoint
-export function generateRoomToken(userId: string, hireId: string): string {
+export async function generateRoomToken(userId: string, hireId: string): Promise<string> {
   return generateToken(`hire-${hireId}`, `mobile-${userId}`);
 }
 

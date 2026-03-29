@@ -15,7 +15,7 @@ app.get('/health', (_req, res) => {
 });
 
 // LiveKit token endpoint - generic (roomName, participantName, apiKey)
-app.post('/livekit-token', (req, res) => {
+app.post('/livekit-token', async (req, res) => {
   const validation = validateTokenRequest(req.body);
 
   if (!validation.valid || !validation.data) {
@@ -25,7 +25,7 @@ app.post('/livekit-token', (req, res) => {
   const { roomName, participantName } = validation.data;
 
   try {
-    const token = generateToken(roomName, participantName);
+    const token = await generateToken(roomName, participantName);
     return res.json({ token });
   } catch (e) {
     console.error('Token generation failed:', e);
@@ -34,7 +34,7 @@ app.post('/livekit-token', (req, res) => {
 });
 
 // LiveKit token endpoint - hire session (userId, hireId, authToken)
-app.post('/livekit/token', (req, res) => {
+app.post('/livekit/token', async (req, res) => {
   const { userId, hireId, authToken } = req.body as {
     userId: string;
     hireId: string;
@@ -51,7 +51,7 @@ app.post('/livekit/token', (req, res) => {
   }
 
   try {
-    const token = generateRoomToken(userId, hireId);
+    const token = await generateRoomToken(userId, hireId);
     const serverUrl = process.env.LIVEKIT_SERVER_URL!;
     return res.json({ token, serverUrl, roomName: `hire-${hireId}` });
   } catch (e) {
