@@ -1,43 +1,55 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import {
+  View, Text, StyleSheet, KeyboardAvoidingView, Platform,
+  ScrollView, TouchableOpacity, Linking,
+} from 'react-native';
 import { router } from 'expo-router';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { loginWithApiKey } from '../lib/auth';
+import { loginWithEmail } from '../lib/auth';
 import { useAuthStore } from '../store/authStore';
 import { useRoleStore } from '../store/roleStore';
 import { colors } from '../constants/colors';
 import { typography } from '../constants/typography';
 
 export default function LoginScreen() {
-  const [apiKey, setApiKey] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { login } = useAuthStore();
+  const { login, setSession } = useAuthStore();
   const { loadRoles } = useRoleStore();
 
   const handleLogin = async () => {
-    if (!apiKey.trim()) { setError('Please enter your API key.'); return; }
+    if (!email.trim()) { setError('Please enter your email address.'); return; }
+    if (!password.trim()) { setError('Please enter your password.'); return; }
     setLoading(true);
     setError(null);
     try {
-      const result = await loginWithApiKey(apiKey.trim());
-      login(result.token, result.userId);
+      const result = await loginWithEmail(email.trim(), password);
+      if (result.refreshToken) {
+        setSession(result.token, result.refreshToken, result.user);
+      } else {
+        login(result.token, result.userId, result.user);
+      }
       await loadRoles();
       router.replace('/(tabs)/dashboard');
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Login failed.');
+      setError(e instanceof Error ? e.message : 'Sign in failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    // Google Sign-In will be wired with expo-auth-session or @react-native-google-signin
+    // For now, show a placeholder message
+    setError('Google sign-in is coming soon. Please use email and password.');
+  };
+
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-
-        {/* Left accent bar */}
-        <View style={styles.accentBar} />
 
         {/* Logo */}
         <View style={styles.logoSection}>
@@ -48,62 +60,79 @@ export default function LoginScreen() {
             <Text style={styles.brandWhite}>Trust </Text>
             <Text style={styles.brandBlue}>Agent</Text>
           </Text>
-          <Text style={styles.version}>Mobile v1.0</Text>
+          <Text style={styles.tagline}>Your AI team, always on</Text>
         </View>
 
         {/* Form */}
         <View style={styles.form}>
-          <Text style={styles.heading}>Connect your workspace</Text>
-          <Text style={styles.sub}>Enter the API key from your Trust Agent account to access your hired roles.</Text>
+          <Text style={styles.heading}>Sign in</Text>
+          <Text style={styles.sub}>Use the same account as trust-agent.ai</Text>
 
-          <View style={styles.inputWrap}>
-            <Text style={styles.label}>API Key</Text>
-            <View style={[styles.inputBox, error ? styles.inputBoxError : null]}>
-              <Text style={styles.inputPrefix}>ta_live_</Text>
-              <View style={styles.divider} />
-              <Text
-                style={styles.inputField}
-                numberOfLines={1}
-              >
-                {apiKey.replace(/^ta_live_/i, '') || ' '}
-              </Text>
-            </View>
-            {/* Actual input layered behind */}
+          {/* Email field */}
+          <View style={styles.fieldGroup}>
+            <Text style={styles.label}>Email</Text>
             <Input
-              value={apiKey}
-              onChangeText={(v) => { setApiKey(v); setError(null); }}
-              placeholder="ta_live_xxxxxxxxxxxxxxxxxxxxxxxx"
-              monospace
+              value={email}
+              onChangeText={(v) => { setEmail(v); setError(null); }}
+              placeholder="you@example.com"
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="next"
+            />
+          </View>
+
+          {/* Password field */}
+          <View style={styles.fieldGroup}>
+            <Text style={styles.label}>Password</Text>
+            <Input
+              value={password}
+              onChangeText={(v) => { setPassword(v); setError(null); }}
+              placeholder="Your password"
               secureTextEntry
               autoCapitalize="none"
               autoCorrect={false}
-              style={styles.hiddenInput}
+              returnKeyType="done"
+              onSubmitEditing={handleLogin}
             />
           </View>
 
           {error && <Text style={styles.error}>{error}</Text>}
 
           <Button
-            label={loading ? 'Connecting...' : 'Connect'}
+            label={loading ? 'Signing in...' : 'Sign in'}
             onPress={handleLogin}
             loading={loading}
-            disabled={!apiKey.trim()}
+            disabled={!email.trim() || !password.trim()}
             style={styles.button}
           />
 
-          {__DEV__ && (
-            <Button
-              label="Dev mode (skip login)"
-              onPress={() => { setApiKey('ta_dev_preview'); handleLogin(); }}
-              variant="ghost"
-              style={styles.devButton}
-            />
-          )}
+          {/* Divider */}
+          <View style={styles.dividerRow}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          {/* Google sign-in */}
+          <TouchableOpacity style={styles.googleButton} onPress={handleGoogleSignIn} activeOpacity={0.8}>
+            <Text style={styles.googleIcon}>G</Text>
+            <Text style={styles.googleLabel}>Continue with Google</Text>
+          </TouchableOpacity>
+
+          {/* Sign up link */}
+          <TouchableOpacity
+            style={styles.signupRow}
+            onPress={() => Linking.openURL('https://app.trust-agent.ai/signup')}
+          >
+            <Text style={styles.signupText}>
+              Don't have an account? <Text style={styles.signupLink}>Sign up free</Text>
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* Footer */}
         <Text style={styles.footer}>
-          AgentCore LTD, Company No. 17114811
+          AgentCore LTD - Company No. 17114811
         </Text>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -113,8 +142,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.darkNavy },
   container: { flexGrow: 1, padding: 28, paddingTop: 80 },
-  accentBar: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, backgroundColor: colors.electricBlue },
-  logoSection: { alignItems: 'center', marginBottom: 48, gap: 10 },
+  logoSection: { alignItems: 'center', marginBottom: 48, gap: 8 },
   shield: {
     width: 72, height: 72, borderRadius: 36,
     backgroundColor: colors.navy2,
@@ -126,24 +154,32 @@ const styles = StyleSheet.create({
   brand: { ...typography.display, fontSize: 34 },
   brandWhite: { color: colors.white },
   brandBlue: { color: colors.electricBlue },
-  version: { ...typography.mono, color: colors.ionCyan, fontSize: 11 },
+  tagline: { ...typography.body, color: colors.textMuted, fontSize: 14 },
   form: { gap: 16 },
   heading: { ...typography.h2, color: colors.white },
-  sub: { ...typography.body, color: colors.textMuted, lineHeight: 22 },
-  label: { ...typography.label, color: colors.textMuted, marginBottom: 6, textTransform: 'uppercase' },
-  inputWrap: { position: 'relative' },
-  inputBox: {
-    flexDirection: 'row', alignItems: 'center',
-    borderWidth: 1, borderColor: colors.borderBlue, borderRadius: 8,
-    backgroundColor: colors.navy2, padding: 12, height: 50,
-  },
-  inputBoxError: { borderColor: colors.error },
-  inputPrefix: { ...typography.mono, color: colors.ionCyan, fontSize: 13 },
-  divider: { width: 1, height: 18, backgroundColor: colors.borderBlue, marginHorizontal: 8 },
-  inputField: { ...typography.mono, color: colors.white, flex: 1, fontSize: 13 },
-  hiddenInput: { position: 'absolute', opacity: 0, top: 0, left: 0, right: 0, height: 50 },
+  sub: { ...typography.body, color: colors.textMuted, lineHeight: 22, marginBottom: 4 },
+  fieldGroup: { gap: 6 },
+  label: { ...typography.label, color: colors.textMuted, textTransform: 'uppercase' },
   error: { ...typography.bodySm, color: colors.error },
-  button: { marginTop: 8 },
-  devButton: { marginTop: 4 },
+  button: { marginTop: 4 },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 4 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: 'rgba(30,111,255,0.2)' },
+  dividerText: { ...typography.bodySm, color: colors.textMuted, marginHorizontal: 16 },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.navy2,
+    borderWidth: 1,
+    borderColor: 'rgba(30,111,255,0.3)',
+    borderRadius: 8,
+    paddingVertical: 12,
+    gap: 10,
+  },
+  googleIcon: { fontSize: 18, fontFamily: 'Manrope_700Bold', color: colors.white },
+  googleLabel: { ...typography.body, color: colors.white, fontFamily: 'Manrope_600SemiBold' },
+  signupRow: { alignItems: 'center', marginTop: 8 },
+  signupText: { ...typography.body, color: colors.textMuted },
+  signupLink: { color: colors.electricBlue },
   footer: { ...typography.monoSm, color: colors.textMuted, textAlign: 'center', marginTop: 'auto', paddingTop: 32 },
 });

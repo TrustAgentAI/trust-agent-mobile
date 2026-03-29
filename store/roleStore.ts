@@ -7,6 +7,8 @@ export interface HiredRole {
   roleCategory: 'C-Suite' | 'Management' | 'Specialist';
   trustScore: number;
   trustBadge: 'PLATINUM' | 'GOLD' | 'SILVER' | 'BASIC';
+  isTrial?: boolean;
+  trialEndsAt?: string;
 }
 
 interface RoleStore {
@@ -18,7 +20,7 @@ interface RoleStore {
 
 // Dev mode seed data - removed once real API is connected
 const DEV_ROLES: HiredRole[] = [
-  { hireId: 'hire-cmo-001', roleName: 'Chief Marketing Officer', roleCategory: 'C-Suite', trustScore: 94, trustBadge: 'PLATINUM' },
+  { hireId: 'hire-cmo-001', roleName: 'Chief Marketing Officer', roleCategory: 'C-Suite', trustScore: 94, trustBadge: 'PLATINUM', isTrial: true, trialEndsAt: new Date(Date.now() + 7 * 86400000).toISOString() },
   { hireId: 'hire-dev-001', roleName: 'Full Stack Developer', roleCategory: 'Specialist', trustScore: 87, trustBadge: 'GOLD' },
 ];
 

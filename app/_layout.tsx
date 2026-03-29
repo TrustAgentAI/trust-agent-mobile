@@ -32,14 +32,18 @@ export default function RootLayout() {
     JetBrainsMono_400Regular,
   });
 
-  const { login, setLoading } = useAuthStore();
+  const { setSession, login, setLoading } = useAuthStore();
   const { loadRoles } = useRoleStore();
 
   useEffect(() => {
     async function init() {
       const session = await restoreSession();
       if (session) {
-        login(session.token, session.userId);
+        if (session.refreshToken) {
+          setSession(session.token, session.refreshToken, session.user);
+        } else {
+          login(session.token, session.userId, session.user);
+        }
         await loadRoles();
       } else {
         setLoading(false);

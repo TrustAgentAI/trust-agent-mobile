@@ -30,7 +30,14 @@ export function RoleCard({ role, onPress }: RoleCardProps) {
       <View style={styles.middle}>
         <Text style={styles.roleName}>{role.roleName}</Text>
         <Text style={styles.category}>{role.roleCategory}</Text>
-        <Badge variant={role.trustBadge} />
+        <View style={styles.badgeRow}>
+          <Badge variant={role.trustBadge} />
+          {role.isTrial && (
+            <View style={styles.trialBadge}>
+              <Text style={styles.trialText}>Trial</Text>
+            </View>
+          )}
+        </View>
       </View>
       <View style={styles.right}>
         <Text style={styles.score}>{role.trustScore}</Text>
@@ -64,6 +71,14 @@ const styles = StyleSheet.create({
   },
   avatarText: { ...typography.h3, color: colors.ionCyan, fontSize: 16 },
   middle: { flex: 1, gap: 4 },
+  badgeRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  trialBadge: {
+    backgroundColor: 'rgba(255,159,10,0.15)',
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  trialText: { fontSize: 10, fontFamily: 'Manrope_600SemiBold', color: '#FF9F0A' },
   roleName: { ...typography.h3, color: colors.white, fontSize: 16 },
   category: { ...typography.bodySm, color: colors.textMuted },
   right: { alignItems: 'center' },

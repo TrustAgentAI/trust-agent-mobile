@@ -23,25 +23,25 @@ export default function TabLayout() {
       <Tabs.Screen
         name="dashboard"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon icon="⬡" label="Roles" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon="~" label="Home" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="session"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon icon="◎" label="Session" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon="o" label="Chat" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="marketplace"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon icon="⊞" label="Market" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon="+" label="Marketplace" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon icon="⊙" label="Settings" focused={focused} />,
+          tabBarIcon: ({ focused }) => <TabIcon icon="*" label="Settings" focused={focused} />,
         }}
       />
     </Tabs>
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   tabItem: { alignItems: 'center', gap: 4 },
-  icon: { fontSize: 22, color: colors.textMuted },
+  icon: { fontSize: 22, color: colors.textMuted, fontFamily: 'Manrope_700Bold' },
   iconActive: { color: colors.ionCyan },
   tabLabel: { fontSize: 10, fontFamily: 'Manrope_600SemiBold', color: colors.textMuted },
   tabLabelActive: { color: colors.ionCyan },
