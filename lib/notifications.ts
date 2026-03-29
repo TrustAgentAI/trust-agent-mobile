@@ -1,5 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import { apiFetch } from './api';
+import { secureGet } from './storage';
 
 // Type-safe notification data
 export interface TaskNotificationData {
@@ -8,6 +10,9 @@ export interface TaskNotificationData {
   agentName?: string;
   message?: string;
 }
+
+// Expo project ID from app.json extra.eas.projectId
+const EXPO_PROJECT_ID = '98e59086-472d-4936-9b03-ecc2b05b7e50';
 
 // Configure how notifications appear when the app is in the foreground
 Notifications.setNotificationHandler({
@@ -18,7 +23,7 @@ Notifications.setNotificationHandler({
   }),
 });
 
-// Request notification permissions on first launch
+// Request notification permissions and register push token with backend
 export async function registerForPushNotifications(): Promise<string | null> {
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
@@ -45,9 +50,32 @@ export async function registerForPushNotifications(): Promise<string | null> {
 
   try {
     const tokenData = await Notifications.getExpoPushTokenAsync({
-      projectId: undefined, // Set to your Expo project ID in production
+      projectId: EXPO_PROJECT_ID,
     });
-    return tokenData.data;
+    const pushToken = tokenData.data;
+
+    // Register push token with the backend
+    const authToken = await secureGet('auth_token');
+    if (authToken && pushToken) {
+      try {
+        await apiFetch(
+          '/notifications/register',
+          {
+            method: 'POST',
+            body: JSON.stringify({
+              pushToken,
+              platform: Platform.OS,
+              provider: 'expo',
+            }),
+          },
+          authToken,
+        );
+      } catch (err) {
+        console.warn('Failed to register push token with backend:', err);
+      }
+    }
+
+    return pushToken;
   } catch (e) {
     console.warn('Failed to get push token:', e);
     return null;

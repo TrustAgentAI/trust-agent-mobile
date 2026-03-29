@@ -19,21 +19,6 @@ export interface AuthResult {
 
 /** Sign in with email and password */
 export async function loginWithEmail(email: string, password: string): Promise<AuthResult> {
-  // Dev shortcut for offline development
-  if (__DEV__ && email === 'dev@trust-agent.ai') {
-    const mock: AuthResult = {
-      token: `mock-jwt-${Date.now()}`,
-      refreshToken: `mock-refresh-${Date.now()}`,
-      userId: 'dev-user-001',
-      user: { userId: 'dev-user-001', email: 'dev@trust-agent.ai', name: 'Dev User', plan: 'pro' },
-    };
-    await secureSet('auth_token', mock.token);
-    await secureSet('auth_refreshToken', mock.refreshToken);
-    await secureSet('user_id', mock.userId);
-    await secureSet('user_profile', JSON.stringify(mock.user));
-    return mock;
-  }
-
   let res: Response;
   try {
     res = await fetch(`${API_URL}/auth/login`, {

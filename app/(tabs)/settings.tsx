@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, SafeAreaView,
   Linking, TouchableOpacity,
@@ -7,10 +7,17 @@ import { router } from 'expo-router';
 import { Button } from '../../components/ui/Button';
 import { logout } from '../../lib/auth';
 import { useAuthStore } from '../../store/authStore';
+import { apiFetch } from '../../lib/api';
 import { colors } from '../../constants/colors';
 import { typography } from '../../constants/typography';
 
 const APP_VERSION = '1.0.0';
+
+interface SubscriptionInfo {
+  plan: string;
+  status: 'active' | 'trialing' | 'past_due' | 'canceled' | 'none';
+  renewsAt?: string;
+}
 
 function SettingsRow({ label, value }: { label: string; value: string }) {
   return (
@@ -31,7 +38,25 @@ function SettingsLink({ label, onPress }: { label: string; onPress: () => void }
 }
 
 export default function SettingsScreen() {
-  const { logout: logoutStore, user } = useAuthStore();
+  const { logout: logoutStore, user, token } = useAuthStore();
+  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
+
+  // Fetch fresh subscription info from API
+  useEffect(() => {
+    if (!token) return;
+    apiFetch<{ data?: SubscriptionInfo; subscription?: SubscriptionInfo }>(
+      '/account/subscription',
+      { method: 'GET' },
+      token,
+    )
+      .then((res) => {
+        const sub = res.data ?? res.subscription ?? (res as unknown as SubscriptionInfo);
+        setSubscription(sub);
+      })
+      .catch((err) => {
+        console.warn('Failed to fetch subscription info:', err);
+      });
+  }, [token]);
 
   const handleLogout = async () => {
     await logout();
@@ -62,7 +87,16 @@ export default function SettingsScreen() {
         {/* Subscription */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Subscription</Text>
-          <SettingsRow label="Current plan" value={planLabel} />
+          <SettingsRow label="Current plan" value={subscription?.plan ?? planLabel} />
+          <SettingsRow
+            label="Status"
+            value={subscription?.status
+              ? subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1)
+              : 'Active'}
+          />
+          {subscription?.renewsAt && (
+            <SettingsRow label="Renews" value={new Date(subscription.renewsAt).toLocaleDateString()} />
+          )}
           <SettingsLink
             label="Manage subscription"
             onPress={() => Linking.openURL('https://app.trust-agent.ai/settings/billing')}

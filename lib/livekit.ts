@@ -1,8 +1,9 @@
 import { Room, RoomEvent, ConnectionState, RemoteParticipant, DataPacket_Kind } from 'livekit-client';
 
-const TOKEN_SERVER_URL = __DEV__
-  ? 'http://localhost:3001'
-  : process.env.EXPO_PUBLIC_API_URL ?? 'https://api.trust-agent.ai';
+const TOKEN_SERVER_URL =
+  process.env.EXPO_PUBLIC_LIVEKIT_TOKEN_SERVER_URL ??
+  process.env.EXPO_PUBLIC_API_URL ??
+  'https://api.trust-agent.ai';
 
 export interface LiveKitSession {
   room: Room;
@@ -39,30 +40,30 @@ export async function fetchRoomToken(
   userId: string,
   hireId: string
 ): Promise<{ token: string; serverUrl: string; roomName: string }> {
-  if (__DEV__) {
-    return {
-      token: 'dev-livekit-token',
-      serverUrl: process.env.EXPO_PUBLIC_LIVEKIT_URL ?? 'wss://localhost:7880',
-      roomName: `hire-${hireId}`,
-    };
-  }
+  const LIVEKIT_URL = process.env.EXPO_PUBLIC_LIVEKIT_URL ?? 'wss://agent.livekit.cloud';
 
   const res = await fetch(`${TOKEN_SERVER_URL}/livekit-token`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`,
+    },
     body: JSON.stringify({
       roomName: `hire-${hireId}`,
       participantName: `mobile-${userId}`,
-      apiKey: authToken,
     }),
   });
 
-  if (!res.ok) throw new Error('Failed to get session token');
-  const { token } = await res.json();
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(errorData.error ?? `Token fetch failed with status ${res.status}`);
+  }
+
+  const data = await res.json();
   return {
-    token,
-    serverUrl: process.env.EXPO_PUBLIC_LIVEKIT_URL ?? 'wss://localhost:7880',
-    roomName: `hire-${hireId}`,
+    token: data.token,
+    serverUrl: data.serverUrl ?? LIVEKIT_URL,
+    roomName: data.roomName ?? `hire-${hireId}`,
   };
 }
 

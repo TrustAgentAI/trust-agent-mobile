@@ -73,21 +73,6 @@ export function useLiveKit(): UseLiveKitReturn {
         } catch {}
       });
 
-      // In dev mode: skip actual LiveKit connection, use mock
-      if (__DEV__ && token === 'dev-livekit-token') {
-        setStatus('connected');
-        // Inject a welcome message
-        setTimeout(() => {
-          setAgentMessages([{
-            id: 'welcome-dev',
-            role: 'agent',
-            content: 'Connected in development mode. LiveKit voice requires a real server - text mode is active.',
-            timestamp: Date.now(),
-          }]);
-        }, 800);
-        return;
-      }
-
       await room.connect(serverUrl, token);
     } catch (e) {
       console.error('LiveKit connect error:', e);
@@ -131,15 +116,7 @@ export function useLiveKit(): UseLiveKitReturn {
     setAgentMessages(prev => [...prev, userMsg]);
 
     if (!room || status !== 'connected') {
-      // Dev mode: mock response
-      setTimeout(() => {
-        setAgentMessages(prev => [...prev, {
-          id: `agent-${Date.now()}`,
-          role: 'agent',
-          content: `[Dev mode] You said: "${content}". Connect to a live Trust Agent server to get real responses.`,
-          timestamp: Date.now(),
-        }]);
-      }, 1000);
+      console.warn('Cannot send message: not connected to LiveKit room');
       return;
     }
 
