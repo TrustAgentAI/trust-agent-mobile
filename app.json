@@ -17,24 +17,53 @@
       "infoPlist": {
         "NSMicrophoneUsageDescription": "Trust Agent needs your microphone to communicate with your hired AI roles via voice.",
         "NSSpeechRecognitionUsageDescription": "Trust Agent uses speech recognition for voice commands."
-      }
+      },
+      "bitcode": false
     },
     "android": {
       "package": "ai.trust_agent.mobile",
-      "permissions": ["RECORD_AUDIO", "INTERNET", "VIBRATE"]
+      "permissions": [
+        "RECORD_AUDIO",
+        "INTERNET",
+        "VIBRATE",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.CAMERA",
+        "android.permission.INTERNET",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.WAKE_LOCK",
+        "android.permission.BLUETOOTH"
+      ]
     },
     "plugins": [
       "expo-router",
-      "@livekit/react-native-expo-plugin",
-      "@config-plugins/react-native-webrtc",
       "expo-font",
       [
         "expo-notifications",
-        { "sounds": [] }
+        {
+          "sounds": []
+        }
+      ],
+      [
+        "@config-plugins/react-native-webrtc",
+        {
+          "cameraPermission": false,
+          "microphonePermission": "Allow Trust Agent to use your microphone for voice sessions"
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "98e59086-472d-4936-9b03-ecc2b05b7e50"
+      }
+    },
+    "owner": "trust_agent"
   }
 }

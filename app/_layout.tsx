@@ -1,7 +1,13 @@
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View } from 'react-native';
+import { View, Platform } from 'react-native';
+
+// Register LiveKit globals for native WebRTC support (must be called before any Room usage)
+if (Platform.OS !== 'web') {
+  require('@livekit/react-native').registerGlobals();
+}
+
 import {
   useFonts,
   Manrope_400Regular,
